@@ -1,11 +1,13 @@
 import json
 from pathlib import Path
 
+import requests
+
 CONFIG_FILE = Path("companies.json")
 
 
 def load_companies():
-    """Load all enabled companies from companies.json."""
+    """Load all enabled companies."""
 
     if not CONFIG_FILE.exists():
         raise FileNotFoundError("companies.json not found.")
@@ -17,19 +19,43 @@ def load_companies():
 
 
 def print_header():
-    print("=" * 70)
+    print("=" * 80)
     print("Career Tracker")
-    print("=" * 70)
+    print("=" * 80)
 
 
-def print_companies(companies):
-    print(f"\nMonitoring {len(companies)} companies:\n")
+def test_connection(company):
+    """Test whether the career website is reachable."""
 
-    for index, company in enumerate(companies, start=1):
-        print(f"[{index}] {company['company']}")
-        print(f"Platform : {company.get('platform', 'Unknown')}")
-        print(f"URL      : {company['url']}")
-        print()
+    print(f"Company : {company['company']}")
+    print(f"Platform: {company.get('platform', 'Unknown')}")
+    print(f"URL     : {company['url']}")
+
+    try:
+        response = requests.get(
+            company["url"],
+            timeout=15,
+            headers={
+                "User-Agent": (
+                    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) "
+                    "Chrome/137.0 Safari/537.36"
+                )
+            },
+        )
+
+        print(f"Status  : {response.status_code}")
+        print(f"Size    : {len(response.text):,} characters")
+
+        if response.status_code == 200:
+            print("Result  : Success")
+        else:
+            print("Result  : Failed")
+
+    except Exception as e:
+        print(f"Error   : {e}")
+
+    print("-" * 80)
 
 
 def main():
@@ -37,9 +63,10 @@ def main():
 
     companies = load_companies()
 
-    print_companies(companies)
+    print(f"\nLoaded {len(companies)} companies.\n")
 
-    print("Configuration loaded successfully.")
+    for company in companies:
+        test_connection(company)
 
 
 if __name__ == "__main__":

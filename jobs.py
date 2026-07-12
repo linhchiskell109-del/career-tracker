@@ -68,6 +68,5 @@ def main():
     for company in companies:
         test_connection(company)
 
-
 if __name__ == "__main__":
     main()
